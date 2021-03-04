@@ -1,0 +1,49 @@
+Christopher Larson
+Prelab 05
+
+INITIALIZE
+LDR     Ri,=PORTA_PCR1     
+LDR     Rj,=PORT_PCR_SET_PTA1_UART0_RX     
+STR     Rj,[Ri,#0] 
+
+DR     Ri,=PORTA_PCR2     
+LDR     Rj,=PORT_PCR_SET_PTA2_UART0_TX     
+STR     Rj,[Ri,#0]
+
+MOVS  Rj,#UART0_BDH_9600     
+STRB  Rj,[Ri,#UART0_BDH_OFFSET]     
+MOVS  Rj,#UART0_BDL_9600     
+STRB  Rj,[Ri,#UART0_BDL_OFFSET]     
+MOVS  Rj,#UART0_C1_8N1     
+STRB  Rj,[Ri,#UART0_C1_OFFSET]     
+MOVS  Rj,#UART0_C3_NO_TXINV     
+STRB  Rj,[Ri,#UART0_C3_OFFSET]     
+MOVS  Rj,#UART0_C4_NO_MATCH_OSR_16     
+STRB  Rj,[Ri,#UART0_C4_OFFSET]    
+MOVS  Rj,#UART0_C5_NO_DMA_SSR_SYNC     
+STRB  Rj,[Ri,#UART0_C5_OFFSET]     
+MOVS  Rj,#UART0_S1_CLEAR_FLAGS     
+STRB  Rj,[Ri,#UART0_S1_OFFSET]     
+MOVS  Rj, \           
+	#UART0_S2_NO_RXINV_BRK10_NO_LBKDETECT_CLEAR_FLAGS     
+STRB  Rj,[Ri,#UART0_S2_OFFSET] 
+
+GETCHAR
+;Poll TDRE until UART0 ready to transmit          
+LDR   Rj,=UART0_BASE          
+MOVS  Rk,#UART0_S1_TDRE_MASK
+PollTx   LDRB  Rm,[Rj,#UART0_S1_OFFSET]          
+ANDS  Rm,Rm,Rk         
+BEQ   PollTx 
+;Transmit character stored in Ri         
+STRB  Ri,[Rj,#UART0_D_OFFSET] 
+
+PUTCHAR
+Poll RDRF until UART0 ready to receive          
+LDR   Rj,=UART0_BASE         
+MOVS  Rk,#UART0_S1_RDRF_MASK 
+PollRx   LDRB  Rm,[Rj,#UART0_S1_OFFSET]          
+ANDS  Rm,Rm,Rk         
+BEQ   PollRx 
+;Receive character and store in Ri         
+LDRB  Ri,[Rj,#UART0_D_OFFSET]

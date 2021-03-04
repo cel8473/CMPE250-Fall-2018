@@ -1,0 +1,105 @@
+Init_DAC0(
+/* Port E pin 31 symbols */
+#define PTE30_MUX_DAC0_OUT (0u << PORT_PCR_MUX_SHIFT)
+#define SET_PTE30_DAC0_OUT (PORT_PCR_ISF_MASK |
+ PTE30_MUX_DAC0_OUT)
+/* SIM_SOPT2 symbols */
+#define SIM_SOPT2_TPMSRC_MCGPLLCLK (1u << SIM_SOPT2_TPMSRC_SHIFT)
+#define SIM_SOPT2_TPM_MCGPLLCLK_DIV2
+ (SIM_SOPT2_TPMSRC_MCGPLLCLK | \
+ SIM_SOPT2_PLLFLLSEL_MASK)
+/* DAC0_C0 symbol */
+#define DAC_C0_ENABLE (DAC_C0_DACEN_MASK |
+ DAC_C0_DACRFS_MASK)
+/* DAC0_C1 symbol */
+#define DAC_C1_BUFFER_DISABLED (0x00u)
+/* DAC0_DAT symbols */
+#define DAC_DATL_MIN (0x00u)
+#define DAC_DATH_MIN (0x00u)
+/* Enable TPM0 module clock */
+SIM->SCGC6 |= SIM_SCGC6_DAC0_MASK;
+/* Enable port E module clock */
+SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
+/* Connect DAC0_OUT to Port E Pin 30 (J4 Pin 11) */
+PORTE->PCR[30] = SET_PTE30_DAC0_OUT;
+/* Set DAC0 DMA disabled and buffer disabled */
+DAC0->C1 = DAC_C1_BUFFER_DISABLED;
+/* Set DAC0 enabled with VDDA as reference voltage */
+/* and read pointer interrupts disabled */
+DAC0->C0 = DAC_C0_ENABLE;
+/* Set DAC0 output voltage at minimum value */
+DAC0->DAT[0].DATL = DAC_DATL_MIN;
+DAC0->DAT[0].DATH = DAC_DATH_MIN; 
+)
+
+Init_and_Cal_ADC0(
+/* ADC0_CFG1 symbols */
+#define ADC0_CFG1_ADIV_BY2 (2u)
+#define ADC0_CFG1_MODE_SGL10 (2u)
+#define ADC0_CFG1_ADICLK_BUSCLK_DIV2 (1u)
+#define ADC0_CFG1_LP_LONG_SGL10_3MHZ \
+ (ADC_CFG1_ADLPC_MASK | \
+ (ADC0_CFG1_ADIV_BY2 << ADC_CFG1_ADIV_SHIFT) | \
+ ADC_CFG1_ADLSMP_MASK | \
+ (ADC0_CFG1_MODE_SGL10 << ADC_CFG1_MODE_SHIFT) | \
+ ADC0_CFG1_ADICLK_BUSCLK_DIV2)
+/* ADC0_CFG2 symbol */
+#define ADC0_CFG2_CHAN_A_NORMAL_LONG (0x00u)
+/* ADC0_SC2 symbols */
+#define ADC0_SC2_REFSEL_VDDA (0x01u)
+#define ADC0_SC2_SWTRIG_VDDA (ADC0_SC2_REFSEL_VDDA)
+/* ADC0_SC3 symbols */
+#define ADC0_SC3_CAL (ADC_SC3_CAL_MASK | \
+ ADC_SC3_AVGE_MASK | \
+ ADC_SC3_AVGS_MASK)
+#define ADC0_SC3_SINGLE (0x00u)
+)
+
+Init_TPM(
+/* Port E pin 31 symbols */
+#define PTE31_MUX_TPM0_CH4_OUT (3u << PORT_PCR_MUX_SHIFT)
+#define SET_PTE31_TPM0_CH4 (PIN_ISF_MASK | \
+ PTE31_MUX_TPM0_CH4_OUT)
+/* SIM_SOPT2 symbols */
+#define SIM_SOPT2_TPMSRC_MCGPLLCLK (1u << SIM_SOPT2_TPMSRC_SHIFT)
+#define SIM_SOPT2_TPM_MCGPLLCLK_DIV2
+ (SIM_SOPT2_TPMSRC_MCGPLLCLK | \
+ SIM_SOPT2_PLLFLLSEL_MASK)
+/* TPM0_CONF symbol */
+#define TPM_CONF_DEFAULT (0)
+/* TPM0_CNT symbol */
+#define TPM_CNT_INIT (0)
+/* TPM0_MOD symbol */
+#define TPM_MOD_PWM_PERIOD_20ms (60000u)
+/* TPM0_SC symbols */
+#define TPM_SC_CMOD_CLK (1u)
+#define TPM_SC_PS_DIV16 (0x4u)
+#define TPM_SC_CLK_DIV16 ((TPM_SC_CMOD_CLK << \
+ TPM_SC_CMOD_SHIFT) | \
+ TPM_SC_PS_DIV16)
+/* TPM0_C4SC symbol */
+#define TPM_CnSC_PWMH (TPM_CnSC_MSB_MASK | \
+ TPM_CnSC_ELSB_MASK)
+/* TPM0_C4V symbol */
+#define TPM_CnV_PWM_DUTY_2ms (6000u)
+/* Enable TPM0 module clock */
+SIM->SCGC6 |= SIM_SCGC6_TPM0_MASK;
+/* Enable port E module clock */
+SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
+/* Connect TPM0 channel 4 to port E pin 31 */
+PORTE->PCR[31] = SET_PTE31_TPM0_CH4;
+/* Set TPM clock source */
+SIM->SOPT2 &= ~SIM_SOPT_TPMSRC_MASK;
+SIM->SOPT2 |= SIM_SOPT2_TPM_MCGPLLCLK_DIV2;
+/* Set TPM0 configuration register to default values */
+TPM0->CONF = TPM_CONF_DEFAULT;
+/* Set TPM0 counter modulo value */
+TPM0->CNT = TPM_CNT_INIT;
+TPM0->MOD = TPM_MOD_PWM_PERIOD_20ms;
+/* Set TPM0 channel 4 edge-aligned PWM */
+TPM0->CONTROLS[4].CnSC = TPM_CnSC_PWMH;
+/* Set TPM0 channel 4 value */
+TPM0->CONTROLS[4].CnV = TPM_CnV_PWM_DUTY_2ms;
+/* Set TPM0 counter clock configuration */
+TPM0->SC = TPM_SC_CLK_DIV16; 
+) 

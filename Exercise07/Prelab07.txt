@@ -1,0 +1,107 @@
+Chris Larson
+Prelab 07
+;****************************************************************
+InitQueue
+;Initializes the queue record structure at the addresss in R1 for the
+;empty queue buffer at the address in R0 of size, given by R2
+		PUSH	{R0-R14, LR}
+        LDR     R0,=QBuffer
+        LDR    R1,=QRecord
+		STR		R0,[R1,#IN_PTR]
+		STR		R0,[R1,#OUT_PTR]
+		STR		R0,[R1,#BUF_STRT]
+        MOVS    R2,#Q_BUF_SZ
+		ADDS	R0,R0,R2
+		STR		R0,[R1,#BUF_PAST]
+		STRB 	R2,[R1,#BUF_SIZE]
+		MOVS 	R0,#0
+		STRB 	R2,[R1,#NUM_ENQD]
+		POP 	{R0-R14, PC}
+		ENDP
+;****************************************************************
+;Attempts to get a character from the queue whose record structure's address is in R1
+;If the queue is not empty, dequeues a single character from the queue to R0 and 
+;clears the flag, to report dequeue successful, else flag is set to 1 and fails
+Dequeue
+		PUSH	{R1-R7, LR}
+		LDR		R2,[R1,#NUM_ENQD]	;R2 = NumberEnqueued
+		CMP		R2,#0				;If(R2 = 0)
+		BEQ	ZERO
+		LDR		R3,[R1,#OUT_PTR]	;R3 = Outpointer
+		SUBS	R2,R2,#1            ;Number Enqueued --
+		ADDS	R3,R3,#1            ;Outpointer ++
+		LDR		R4,[R1,#BUF_PAST]   ;R4 = BufferPast
+		CMP		R3,R4               ;If(Outpointer points out side queue buffer)
+		BLT	NoAdjD                      
+		LDR		R3,[R1,#BUF_STRT]   ;Adjusts the Outpointer
+        B ZERO
+		
+NoAdjD	MRS 	R6, APSR		    ;Clears the flag on return
+		MOVS 	R7,#0X20		    ;Changes the C flag to 0
+		LSLS 	R7, R7, #24
+		BICS 	R6, R6, R7
+		MSR 	APSR, R6
+		B EndDeQ
+		
+ZERO	MRS 	R6, APSR		    ;Sets the flag on return
+		MOVS 	R7,#0x20		    ;Changes the C flag to a 1
+		LSLS 	R7, R7, #24
+		ORRS 	R6, R6, R7
+		MSR 	APSR, R6
+		
+EndDeQ	STR		R2,[R1,#NUM_ENQD]   ;Number Enqueued = R2
+		STR		R3,[R1,#OUT_PTR]    ;Outpointer = R3
+		STR		R4,[R1,#BUF_STRT]   ;BufferStart = R4
+		POP		{R1-R7, PC}
+		END P
+;****************************************************************
+;Attempts to put a character in the queue whose queue record structure's address is in R1
+; if the queue is not full, enqueues the single character from R0 to the queue, and set the C flag to 1 else sets
+; the flag to 0 reporing a failure
+Enqueue
+		PUSH	{R0-R7, LR}
+		LDR		R2,[R1,#NUM_ENQD]   ;R2 = Number Enqueued
+		LDR		R3,[R1,#BUF_SIZE]   ;R3 = Buffer Size
+		CMP		R2,R3               ;If(NumEnqueued < BuffSize)
+		BGT		FULL                ;Queue is full
+		LDR		R4,[R1,#IN_PTR]     ;R4 = Inpointer
+		LDR		R5,[R1,#BUF_STRT]   ;R5 = BufferStart
+		STR		R0,[R1,#IN_PTR]     ;New Element into the Queue at the Inpointer
+		ADDS	R2,R2,#1            ;Number Enqueued ++
+		ADDS	R4,R4,#1            ;Inpointer ++
+		CMP		R4,R5               ;If(Inpointer >= BufferPast
+		BLT		NoAdjE              
+		STR		R5,[R1,#IN_PTR]     ;Adjust Inpointer to BufferStart
+		
+NoAdjE	MRS 	R6, APSR		    ;Clears the flag on return
+		MOVS 	R7,#0X20		    ;Changes the C flag to 0
+		LSLS 	R7, R7, #24
+		BICS 	R6, R6, R7
+		MSR 	APSR, R6
+		B EndEnQ
+
+FULL	MRS 	R6, APSR	    	;Sets the flag on return
+		MOVS 	R7,#0x20		    ;Changes the C flag to a 1
+		LSLS 	R7, R7, #24
+		ORRS 	R6, R6, R7
+		MSR 	APSR, R6
+
+EndEnQ	STR		R2,[R1,#NUM_ENQD]   ;Number Enqueued = R2
+		STR		R3,[R1,#BUF_SIZE]   ;Buffersize = R3
+		STR		R5,[R1,#IN_PTR]     ;Inpointer = R4
+		POP		{R0-R7, PC}
+		END P
+;****************************************************************
+PutNumHex
+        PUSH    {R1-R2, LR}
+        BL PutNum
+        MUL     R0,R0,#16
+        POP     {R1-R2, PC}
+        ENDP
+;****************************************************************
+PutNumUB
+        PUSH	{R1-R2, LR}
+        ANDS    R0,R0,#0xFF
+        BL PutNumU
+        ENDP
+;****************************************************************

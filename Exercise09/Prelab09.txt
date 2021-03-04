@@ -1,0 +1,48 @@
+Christopher Larson
+Prelab09
+ISR             CPSID I				;Mask other interrupts 
+                PUSH {R4-R11}			;Push any registers used, except {R0-R3,R12} 
+                LDR R0,=UART0_C2
+                LDR R1,=UART0_S1
+                LDR R2,[R0,#UART0_C2_TIE]
+                LDR R3,[R1,#UART0_S1_TDRE]
+                CMP R2,#0			;if (TxInteruptEnabled) then ;TIE = 1 in UART0_C2 
+                BEQ RXQ
+                CMP R3,#0			;if (TxInterrupt) then  ;TDRE = 1 in UART0_S1 
+                BEQ RXQ
+                LDR R1,=TxQueue			; Dequeue character from TxQueue 
+                BL Dequeue			
+                BCC FailISR			; if (dequeue successful) then 
+                BL PutChar
+                B RXQ
+FailISR         MOVS R3,#0			;Disable TxInterrupt  ;UART0_C2_T_RI 
+RXQ             LDR R4,[R1,#UART0_S1_RDRF]
+                BL GetChar			; Read character from UART0 receive data register 
+                BL Enqueue			; Enqueue character in RxQueue 
+                POP {R0-R3,R12}			;Pop any registers pushed above 
+		CPSIE I				;Unmask other interrupts				
+                ENDP
+                
+PutChar	PROC 	{R1-R14}			    ;Procs R0-R14
+		PUSH	{R1-R3}				    ;Pushes R0-R3 to the stack
+PutLoop CPSID I                         ;Mask other interrupts
+        BL Enqueue                      ;Enqueue character
+        CPSIE I                         ;Unmask other interupts
+        BCS PutLoop                     ;Loop until successful
+        LDR R0,=UART0_BASE
+        MOVS R1,#UART0_C2_TI_RI         ;Enable TxInterrupt
+        STRB R1,[R0,#UART0_C2_OFFSET]   
+		POP	 {R1-R3}			        ;Pops R0-R3 from the stack
+		BX LR					        ;Branch exchange the list register
+		ENDP
+
+GetChar PROC 	{R1-R14}			    ;Procs R0-R14
+		PUSH	{R1-R3}			        ;Pushes R0-R3 to the stack
+GetCLoop CPSID I                         ;Mask other interrupts
+        LDR R1,=RxQueue                 ;Loads Queue address
+        BL Dequeue                      ;Dequeue character from RxQueue
+        CPSIE I                         ;Unmask other interrupts
+        BCS GetCLoop                     ;Loop until successful
+		POP	{R1-R3}				        ;Pops R0-R3 from the stack
+		BX LR					        ;Branch exchange the list register
+		ENDP

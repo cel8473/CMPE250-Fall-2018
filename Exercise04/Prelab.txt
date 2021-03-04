@@ -1,0 +1,34 @@
+Chris Larson
+DIVU			MOVS R2,#0	
+				
+				CMP R0,#0 
+				BEQ	ZERO
+				
+				CMP R1
+				BNE WHILE
+				
+WHILE			CMP R1, R0
+				BGE REM
+				
+				SUBS R1, R1, R0
+				ADDS R2, R2, #1
+				BHI WHILE
+				
+ZERO			MOVS R2,R0
+				B CLEAR
+
+FLAGCHANGE		MRS R0, APSR
+				MOVS R1,#0x20
+				LSLS R1, R1, #24
+				BICS R0, R0, R1
+				MSR APSR, R0
+				B DONE
+				
+CLEAR			MRS R0, APSR
+				MOVS R1,#0X20
+				LSLS R1, R1, #24
+				ORRS R0, R0, R1
+				MSR APSR, R0
+				B DONE
+
+DONE

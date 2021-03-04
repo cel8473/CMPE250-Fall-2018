@@ -1,0 +1,75 @@
+Chris Larson
+Prelab06
+
+GETCHAR 	PROC 	{R1-R14}			;Procs R0-R14
+		PUSH	{R1-R3}				;Pushes R0-R3 to the stack
+;Poll RDRF until UART0 ready to receive           
+		LDR   	R1,=UART0_BASE
+		MOVS  	R2,#UART0_S1_RDRF_MASK         
+PollRx  LDRB  R3,[R1,#UART0_S1_OFFSET]          
+		ANDS  	R3,R3,R2         
+		BEQ   	PollRx 
+;Receive character and store in R0         
+		LDRB  	R0,[R1,#UART0_D_OFFSET]
+		POP	{R1-R3}				;Pops R0-R3 from the stack
+		BX LR					;Branch exchange the list register
+		ENDP
+
+PUTCHAR		PROC 	{R1-R14}			;Procs R0-R14
+		PUSH	{R1-R3}				;Pushes R0-R3 to the stack
+;Poll TDRE until UART0 ready to transmit           
+		LDR   	R1,=UART0_BASE         
+		MOVS  	R2,#UART0_S1_TDRE_MASK
+PollTx  LDRB  R3,[R1,#UART0_S1_OFFSET]          
+		ANDS  	R3,R3,R2         
+		BEQ   	PollTx 
+;Transmit character stored in R0         
+		STRB  	R0,[R1,#UART0_D_OFFSET] 
+		POP	{R1-R3}				;Pops R0-R3 from the stack
+		BX LR					;Branch exchange the list register
+		ENDP
+
+
+GetString 	PROC 	{R0-R13}			;Procs R0-R14
+		PUSH	{R1-R5,LR}			;Pushes R1-R5 and LR to the stack
+		BL GetChar				;Calls	GetChar
+		MOVS	R4,#0				;Sets R4 to 0, R4 is the counter
+		CMP	R4,R1				;Compares R4 to R1
+		BEQ	End				;If R1 is zero ends the program
+		SUBS 	R1,R1,#1			;R1-1
+	Loop	BL GetChar				;Loops GetChar until R0 is CR
+		CMP	R0,#0x0D			;Compares R0 to CR
+		BEQ	End				;If R0 is CR ends
+		STRB	R0,[R3,R4]			;Stores R3 with an offset of R4 into R0
+		ADDS 	R4,R4,#1			;Increments the counter by 1
+		CMP	R4,R1				;Compares R4 and R1
+		BEQ	End				;If R4 and R1 are the same end
+	End	MOVS	R5,#0				;Sets R5 to 0
+		STRB	R5,[R3,R4]			;Stores R5 as the last char in the string
+		POP	{R1-R5,PC}			;Pops R1-R5 and PC back from the stack
+
+PutString	PROC	{R0-R14}			;Procs R0-R14
+		PUSH	{R1-R5,LR}			;Pushes R1-R5 and LR to the stack
+		MOVS	R2,R0				;Sets R2 to the address stored in R0
+		MOVS	R4,#0				;Sets R4 to 0, R4 is the counter
+	Loading	LDBR	R0,[R2,R4]			;Loads R2 with an offset of R4 into R0
+		CMP	R0,#0				;Compares R0 to 0, it ends when the program finds a zero
+		BEQ	End				;If 0 end program
+		ADDS	R4,R4,#1				;Increments counter by 1
+		BL 	PutChar				;Runs PutChar
+		B	Loading				
+	End	POP	{R1-R5,PC}			;Pops R1-R5 and PC to the stack
+
+PutNumU		PROC	{R1-R14}			;Procs R
+		PUSH	{R1-R4}				;Pushes R1-R4 to the stack
+		MOVS	R1,#10				;Sets R1 as ten which is the divisor
+		MOVS	R2,#0				;Sets R2 to zero which stores the result
+
+	While	CMP	R0,R1				;Compares R0 and R1
+		BLO	End				;If the dividend is less than the divisor end
+		SUBS	R0,R0,R1			;Divides
+		ADDS	R2,R2,#1			;Add 1 to the result
+		B	While				;
+	End	MOVS	R0,R2				;Sets the divisor to the result
+		BL 	PutChar				;PutChar of the result
+			

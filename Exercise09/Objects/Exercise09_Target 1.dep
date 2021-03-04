@@ -1,0 +1,6 @@
+Dependencies for Project 'Exercise09', Target 'Target 1': (DO NOT MODIFY !)
+F (.\Exercise09.s)(0x5BE1C94A)(--cpu Cortex-M0+ -g --apcs=interwork -I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\Kinetis_KLxx_DFP\1.14.0\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 524" --pd "MKL46Z256xxx4 SETA 1"--list .\listings\exercise09.lst --xref -o .\objects\exercise09.o --depend .\objects\exercise09.d)
+I (MKL46Z4.s)(0x5BB3C28C)
+F (.\MKL46Z4.s)(0x5BB3C28C)(--cpu Cortex-M0+ -g --apcs=interwork -I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\Kinetis_KLxx_DFP\1.14.0\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 524" --pd "MKL46Z256xxx4 SETA 1"--list .\listings\mkl46z4.lst --xref -o .\objects\mkl46z4.o --depend .\objects\mkl46z4.d)
+F (.\Start.s)(0x5BB3C24C)(--cpu Cortex-M0+ -g --apcs=interwork -I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\Kinetis_KLxx_DFP\1.14.0\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include--pd "__UVISION_VERSION SETA 524" --pd "MKL46Z256xxx4 SETA 1"--list .\listings\start.lst --xref -o .\objects\start.o --depend .\objects\start.d)
+I (MKL46Z4.s)(0x5BB3C28C)

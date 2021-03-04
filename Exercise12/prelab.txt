@@ -1,0 +1,9 @@
+1)Initialize a timer
+  Check the timer and save the value 
+  Take the value and modulo 4 the value
+2)Create an interrupt that triggers when a key is hit
+3)Check the timer and save the value
+  Divide the value by the maximum value
+  Take the value and multiply by 100
+  Subtract the value by 100 
+  Multiply the value by 10 to get the score
